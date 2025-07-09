@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пошук скарбу</title>
+<style>
+  body { font-family: sans-serif; text-align: center; padding: 50px; }
+  h1 { font-size: 2em; }
+  #distance { font-size: 3em; margin-top: 20px; }
+</style>
+</head>
+<body>
+<h1>Відстань до скарбу:</h1>
+<div id="distance">…</div>
+
+<script>
+// Координати скарбу (приклад — заміни на свої!)
+const treasureLat = 50.50580623906926;   // широта    
+const treasureLng = 30.548253235043646;   // довгота
+
+function toRad(Value) {
+  return Value * Math.PI / 180;
+}
+
+function calcDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // радіус Землі в метрах
+  const φ1 = toRad(lat1);
+  const φ2 = toRad(lat2);
+  const Δφ = toRad(lat2 - lat1);
+  const Δλ = toRad(lon2 - lon1);
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function updateDistance() {
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(position => {
+      const userLat = position.coords.latitude;
+      const userLng = position.coords.longitude;
+      const distance = calcDistance(userLat, userLng, treasureLat, treasureLng);
+      document.getElementById('distance').innerText = Math.round(distance) + ' м';
+    }, error => {
+      document.getElementById('distance').innerText = 'Не вдалося отримати геопозицію.';
+    });
+  } else {
+    document.getElementById('distance').innerText = 'Геолокація не підтримується.';
+  }
+}
+
+updateDistance();
+</script>
+</body>
+</html>
