@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Пошук скарбу</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 { font-size: 2em; }
+    .hidden { display: none; }
+    #distance { font-size: 4em; margin-top: 20px; color: darkblue; }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      background-color: #008cba;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1em;
+      width: 80%;
+      max-width: 400px;
+      margin-top: 15px;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="intro">
+  <h1>Легенда про Скарб Капітана Срібного Локона</h1>
+  <p>Колись давно, на просторах безкрайніх морів, пливла легендарна піратська флотилія під командуванням самого Капітана Ростіслава Срібного Локона — відомого не тільки своєю майстерністю в морських битвах, але й неймовірними здібностями знаходити скарби там, де інші навіть не шукали. Його волосся, як срібло, сяяло на сонці, і кожен його вигляд змушував ворогів тремтіти.</p>
+  <p>Віками переслідувана його команда, котра складалася з найхоробріших піратів морів:</p>
+  <ul style="text-align: left;">
+    <li>Шторм Шестак, завжди готовий підняти бурю і зробити те, що інші бояться.</li>
+    <li>Вовк з Трьох Морів, хитрий і небезпечний, він завжди був першим у найскладніших завданнях.</li>
+    <li>Місьє Артем’Яно Кальмаріно, геній маніпуляцій і майстер хитрощів.</li>
+    <li>Алекс Вайт Свон, безстрашний та граційний.</li>
+    <li>Адмірал Залізний Макс, що став легендою своєю відданістю та незламністю.</li>
+  </ul>
+  <p>Ця команда подорожувала через океани, шукала невідомі землі, боролася за скарби… Але все змінилося, коли вони натрапили на загадковий острів.</p>
+  <p>Однак, перед тим як здобути скарб, треба заїхати у найближчу бухту та трішки залутатися. Але щоб знайти шлях — розгадай піратську загадку.</p>
+  <button onclick="showRiddle()">Почати</button>
+</div>
+
+<div id="riddle" class="hidden">
+  <h1>Піратська загадка</h1>
+  <p>
+    Я на палубі, та не з мечем,<br>
+    Моя респектабельність — це сміх.<br>
+    Я, мов під час бурі, вбиваю шум,<br>
+    Кричу так голосно, що всі линуть вниз.
+  </p>
+  <p>
+    Мене не побачиш в офіційних рядах,<br>
+    Та коли злоститься дух пірата — я тут.<br>
+    Не пощаджу нікого, ні короля,<br>
+    Моя сила у слові, яке віднайдеш в штормі.
+  </p>
+  <input type="text" id="answerInput" placeholder="Введіть відповідь..." />
+  <br />
+  <button onclick="checkAnswer()">Відповісти</button>
+  <div id="error" class="error"></div>
+</div>
+
+
+<div id="map" class="hidden">
+  <h1>Відстань до скарбу:</h1>
+  <div id="distance">…</div>
+</div>
+
+<script>
+  const treasureLat = 50.5021667;
+  const treasureLng = 30.5499167;
+
+  function showRiddle() {
+    document.getElementById('intro').classList.add('hidden');
+    document.getElementById('riddle').classList.remove('hidden');
+  }
+
+  function checkAnswer() {
+    const input = document.getElementById('answerInput').value.trim().toLowerCase();
+    if (input === 'лайка') {
+      document.getElementById('riddle').classList.add('hidden');
+      document.getElementById('map').classList.remove('hidden');
+      updateDistance();
+    } else {
+      document.getElementById('error').innerText = 'Невірна відповідь. Спробуй ще.';
+    }
+  }
+
+  function toRad(value) {
+    return value * Math.PI / 180;
+  }
+
+  function calcDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // радіус Землі в метрах
+    const φ1 = toRad(lat1);
+    const φ2 = toRad(lat2);
+    const Δφ = toRad(lat2 - lat1);
+    const Δλ = toRad(lon2 - lon1);
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+function updateDistance() {
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(position => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+        const distance = calcDistance(userLat, userLng, treasureLat, treasureLng);
+        document.getElementById('distance').innerText = Math.round(distance) + ' м';
+      }, error => {
+        document.getElementById('distance').innerText = 'Не вдалося отримати геопозицію.';
+      });
+    } else {
+      document.getElementById('distance').innerText = 'Геолокація не підтримується.';
+    }
+  }
+</script>
+
+</body>
+</html>
